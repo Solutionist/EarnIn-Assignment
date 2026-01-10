@@ -89,6 +89,65 @@ Each test case should use its own mock data and services (e.g., Wiremock for Pas
 	2.	Run the full suite of automated tests.
 	3.	Report any failures back to the PR.
 
+## Running Tests
+
+### Prerequisites
+- Docker and Docker Compose installed
+- Python 3.12 or higher
+- All services running (see "Up and running" section above)
+
+### Running Tests Locally
+
+1. **Start the services** (if not already running):
+   ```bash
+   docker compose up -d
+   ```
+
+2. **Set up the database schema**:
+   ```bash
+   docker compose exec -T postgres psql -h localhost -U postgres airline -f /home/scripts/schema.sql
+   ```
+
+3. **Install Python dependencies**:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+4. **Run the test suite**:
+   ```bash
+   pytest tests/ -v
+   ```
+
+   Or with XML report generation:
+   ```bash
+   pytest tests/ -v --junitxml=test-results.xml
+   ```
+
+### Test Results and Reports
+
+#### Local Test Execution
+- **Console Output**: Test results are displayed in the terminal with verbose output (`-v` flag)
+- **XML Report**: When using `--junitxml=test-results.xml`, test results are saved to `test-results.xml` in the project root
+- **Exit Code**: The test command will exit with code 0 if all tests pass, or non-zero if any test fails
+
+#### GitHub Actions Test Results
+When tests run in GitHub Actions (on pull requests or pushes to main branch):
+- **Check Runs**: Test results are published as GitHub Check Runs, visible in the "Checks" tab of the PR
+- **PR Comments**: Test results are automatically posted as comments on pull requests, showing:
+  - Total number of tests run
+  - Number of passed/failed tests
+  - Detailed test results with execution times
+  - Any test failures with error messages
+- **Workflow Logs**: Full test execution logs are available in the "Actions" tab of the repository
+
+The GitHub Actions workflow (`.github/workflows/test.yml`) automatically:
+1. Sets up the Python environment
+2. Starts Docker services (PostgreSQL, Wiremock, API)
+3. Waits for all services to be ready
+4. Sets up the database schema
+5. Runs the full test suite
+6. Publishes results to the PR (even if tests fail)
+
 ## **Assignment Submission Guidelines**
 
 Candidates are required to create a public or private repository (accessible by the hiring team) on their own GitHub account for the assignment. Please follow these steps for submission:
