@@ -8,6 +8,10 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: write
+      pull-requests: write
     
     steps:
     - uses: actions/checkout@v4
@@ -65,12 +69,12 @@ jobs:
         AIRLINE_API_URL: http://localhost:8000
         WIREMOCK_URL: http://localhost:8081
         DATABASE_URL: postgresql://postgres:postgres@localhost:5432/airline
-      run: pytest tests/ -v
+      run: pytest tests/ -v --junitxml=test-results.xml
     
     - name: Publish test results
       if: always()
       uses: EnricoMi/publish-unit-test-result-action@v2.21.0
       with:
-        files: '**/test-*.xml'
+        files: 'test-results.xml'
         check_name: Test Results
         comment_mode: always
