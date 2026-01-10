@@ -2,9 +2,15 @@
 Test Scenario 2: Create a flight booking with invalid customer and flight details
 Expected Result: Booking is not created. The Passport API returns a 'Firstname or Lastname is mismatch.' error.
 """
+import httpx
+from tests.conftest import (
+    find_passenger_by_passport_id,
+    get_passengers,
+    assert_mismatch_error
+)
 
 
-def test_create_booking_with_invalid_customer(api_client):
+def test_create_booking_with_invalid_customer(api_client: httpx.Client) -> None:
     """
     Test creating a booking with invalid customer details.
     The Passport API should be called and return a 'Firstname or Lastname is mismatch.' error.
@@ -32,21 +38,11 @@ def test_create_booking_with_invalid_customer(api_client):
     )
     
     # Assertions - should fail with 400 and mismatch error
-    assert response.status_code == 400, f"Expected 400, got {response.status_code}: {response.text}"
-    
-    # Verify the error message
-    response_data = response.json()
-    assert "detail" in response_data
-    assert "Firstname or Lastname is mismatch" in response_data["detail"]
+    assert_mismatch_error(response)
     
     # Verify the booking was NOT created
-    get_response = api_client.get(f"/flights/{flight_id}/passengers")
-    assert get_response.status_code == 200
+    passengers = get_passengers(api_client, flight_id)
     
-    passengers = get_response.json()["passengers"]
     # Find our booking - should NOT exist
-    our_booking = next(
-        (p for p in passengers if p["passport_id"] == passport_id),
-        None
-    )
+    our_booking = find_passenger_by_passport_id(passengers, passport_id)
     assert our_booking is None, "Booking should NOT be created when names don't match"

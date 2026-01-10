@@ -3,10 +3,12 @@ Test Scenario 4: Retrieve flight details of the same timezone of departure and a
 Expected Result: Booking details are retrieved, and both departure time and arrival time are converted 
 to the Thailand (Bangkok, ICT) timezone.
 """
+import httpx
 from datetime import datetime
+from tests.conftest import find_flight_by_id
 
 
-def test_retrieve_flight_with_same_timezone(api_client):
+def test_retrieve_flight_with_same_timezone(api_client: httpx.Client) -> None:
     """
     Test retrieving flight details with same timezone for departure and arrival.
     Both departure and arrival times should be in Thailand (Bangkok, ICT) timezone.
@@ -24,10 +26,7 @@ def test_retrieve_flight_with_same_timezone(api_client):
     assert "flights" in flights_data
     
     # Find our flight
-    flight = next(
-        (f for f in flights_data["flights"] if f["id"] == flight_id),
-        None
-    )
+    flight = find_flight_by_id(flights_data["flights"], flight_id)
     assert flight is not None, f"Flight {flight_id} should exist"
     
     # Verify flight details
@@ -49,7 +48,7 @@ def test_retrieve_flight_with_same_timezone(api_client):
     # Verify departure time is in Bangkok timezone
     assert departure_time.tzinfo is not None, "Departure time should have timezone info"
     departure_offset = departure_time.utcoffset()
-    assert departure_offset.total_seconds() == bkk_timezone_offset, \
+    assert departure_offset is not None and departure_offset.total_seconds() == bkk_timezone_offset, \
         f"Departure time should be in Asia/Bangkok timezone (UTC+7), got offset {departure_offset}"
     
     # Verify arrival time is in Bangkok timezone

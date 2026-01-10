@@ -2,10 +2,17 @@
 Test Scenario 6: Attempt to update customer name with mismatched details in Passport API
 Expected Result: Update fails. The Passport API returns a 'Firstname or Lastname is mismatch.' error.
 """
-from datetime import datetime
+import httpx
+from tests.conftest import (
+    create_booking,
+    get_passengers,
+    find_passenger_by_customer_id,
+    assert_mismatch_error,
+    assert_passenger_fields_match
+)
 
 
-def test_update_customer_with_mismatched_name(api_client):
+def test_update_customer_with_mismatched_name(api_client: httpx.Client) -> None:
     """
     Test updating customer information with names that don't match the passport.
     The Passport API should return a mismatch error.
@@ -19,27 +26,12 @@ def test_update_customer_with_mismatched_name(api_client):
     initial_first_name = "Shauna"
     initial_last_name = "Davila"
     
-    create_data = {
-        "passport_id": initial_passport_id,
-        "first_name": initial_first_name,
-        "last_name": initial_last_name
-    }
-    
-    create_response = api_client.post(
-        f"/flights/{flight_id}/passengers",
-        json=create_data,
-        headers={"Content-Type": "application/json"}
-    )
-    assert create_response.status_code == 200, \
-        f"Booking creation should succeed: {create_response.status_code}: {create_response.text}"
-    
-    created_booking = create_response.json()
+    created_booking = create_booking(api_client, flight_id, initial_passport_id,
+        initial_first_name, initial_last_name)
     customer_id = created_booking["customer_id"]
     
     # Step 2: Attempt to update with MISMATCHED names
     # Using static mapping from passport_invalid_customer_flight.json (DOE12345)
-    # This mapping returns: passport_id="DOE12345", first_name="Jane", last_name="Smith"
-    # But we're sending "John Doe" which doesn't match
     updated_passport_id = "DOE12345"  # Different passport
     updated_first_name = "John"        # Different from passport's "Jane"
     updated_last_name = "Doe"          # Different from passport's "Smith"
@@ -58,30 +50,17 @@ def test_update_customer_with_mismatched_name(api_client):
     )
     
     # Assertions - update should fail with 400 and mismatch error
-    assert update_response.status_code == 400, \
-        f"Expected 400, got {update_response.status_code}: {update_response.text}"
-    
-    # Verify the error message
-    error_data = update_response.json()
-    assert "detail" in error_data, "Error response should contain 'detail' field"
-    assert "Firstname or Lastname is mismatch" in error_data["detail"], \
-        f"Error should mention mismatch, got: {error_data['detail']}"
+    assert_mismatch_error(update_response)
     
     # Verify the booking was NOT updated by retrieving it
-    get_response = api_client.get(f"/flights/{flight_id}/passengers")
-    assert get_response.status_code == 200
-    
-    passengers = get_response.json()["passengers"]
-    original_passenger = next(
-        (p for p in passengers if p["customer_id"] == customer_id),
-        None
-    )
+    passengers = get_passengers(api_client, flight_id)
+    original_passenger = find_passenger_by_customer_id(passengers, customer_id)
     assert original_passenger is not None, "Original booking should still exist"
     
     # Verify the booking still has the original values (not updated)
-    assert original_passenger["passport_id"] == initial_passport_id, \
-        f"Passport ID should remain {initial_passport_id}, got {original_passenger['passport_id']}"
-    assert original_passenger["first_name"] == initial_first_name, \
-        f"First name should remain {initial_first_name}, got {original_passenger['first_name']}"
-    assert original_passenger["last_name"] == initial_last_name, \
-        f"Last name should remain {initial_last_name}, got {original_passenger['last_name']}"
+    assert_passenger_fields_match(
+        original_passenger,
+        passport_id=initial_passport_id,
+        first_name=initial_first_name,
+        last_name=initial_last_name
+    )
