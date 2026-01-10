@@ -69,8 +69,8 @@ jobs:
     
     - name: Publish test results
       if: always()
-      uses: EnricoMi/publish-unit-test-result-action@v2
+      uses: EnricoMi/publish-unit-test-result-action@v2.21.0
       with:
         files: '**/test-*.xml'
         check_name: Test Results
-        comment_mode: create-new
+        comment_mode: always
