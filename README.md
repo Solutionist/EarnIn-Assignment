@@ -105,7 +105,12 @@ Each test case should use its own mock data and services (e.g., Wiremock for Pas
 
 2. **Set up the database schema**:
    ```bash
-   docker compose exec -T postgres psql -h localhost -U postgres airline -f /home/scripts/schema.sql
+   docker compose exec postgres sh -c 'psql -U postgres -d airline -f /home/scripts/schema.sql'
+   ```
+   
+   **Note:** If you're using Git Bash on Windows and the above doesn't work, try:
+   ```bash
+   docker compose exec postgres psql -U postgres -d airline -f /home/scripts/schema.sql
    ```
 
 3. **Install Python dependencies**:

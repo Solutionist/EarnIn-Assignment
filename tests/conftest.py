@@ -1,6 +1,7 @@
 import pytest
 import httpx
 import os
+from datetime import datetime
 from typing import Dict, List, Optional, Any
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
@@ -8,12 +9,11 @@ from sqlalchemy.orm import sessionmaker
 # Test configuration
 AIRLINE_API_URL = os.getenv("AIRLINE_API_URL", "http://localhost:8000")
 WIREMOCK_URL = os.getenv("WIREMOCK_URL", "http://localhost:8081")
-WIREMOCK_ADMIN_URL = f"{WIREMOCK_URL}/__admin"
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/airline")
 
 
 @pytest.fixture(autouse=True)
-def reset_database():
+def reset_database() -> None:
     """
     Reset database state before each test.
     Cleans up passengers and customers, but keeps flights intact.
@@ -30,7 +30,10 @@ def reset_database():
         session.commit()
     except Exception as e:
         session.rollback()
-        pass
+        # Allow tests to run even if tables don't exist yet (schema will be applied)
+        # Only suppress errors related to missing tables
+        if "does not exist" not in str(e).lower() and "relation" not in str(e).lower():
+            raise
     finally:
         session.close()
     
@@ -38,16 +41,9 @@ def reset_database():
 
 
 @pytest.fixture
-def api_client():
+def api_client() -> httpx.Client:
     """HTTP client for making requests to the airline API"""
     with httpx.Client(base_url=AIRLINE_API_URL, timeout=30.0) as client:
-        yield client
-
-
-@pytest.fixture
-def wiremock_client():
-    """HTTP client for Wiremock admin API"""
-    with httpx.Client(base_url=WIREMOCK_ADMIN_URL, timeout=10.0) as client:
         yield client
 
 
@@ -79,7 +75,7 @@ def find_passenger_by_customer_id(
 
 
 def create_booking(api_client: httpx.Client, flight_id: str, passport_id: str,
-    first_name: str, last_name: str) -> Dict[str, str]:
+    first_name: str, last_name: str) -> Dict[str, Any]:
     """
     Create a booking and return the response data.
     """
@@ -145,6 +141,39 @@ def find_flight_by_id(flights: List[Dict[str, Any]], flight_id: str) -> Optional
         if flight["id"] == flight_id:
             return flight
     return None
+
+
+def assert_status_code(response: httpx.Response, expected_status_code: int) -> None:
+    """
+    Assert that a response has the expected status code.
+    """
+    assert response.status_code == expected_status_code, \
+        f"Expected {expected_status_code}, got {response.status_code}: {response.text}"
+
+
+def parse_datetime_string(datetime_str: str) -> datetime:
+    """
+    Parse a datetime string, handling both ISO format and Z-suffix format.
+    """
+    if datetime_str.endswith('Z'):
+        return datetime.fromisoformat(datetime_str.replace('Z', '+00:00'))
+    return datetime.fromisoformat(datetime_str)
+
+
+def assert_timezone_offset(
+    dt: datetime,
+    expected_offset_hours: int,
+    timezone_name: str
+) -> None:
+    """
+    Assert that a datetime has the expected timezone offset.
+    """
+    assert dt.tzinfo is not None, f"{timezone_name} time should have timezone info"
+    offset = dt.utcoffset()
+    assert offset is not None, f"{timezone_name} time offset should not be None"
+    expected_seconds = expected_offset_hours * 3600
+    assert offset.total_seconds() == expected_seconds, \
+        f"{timezone_name} time should be UTC{expected_offset_hours:+d}, got offset {offset}"
 
 
 def assert_passenger_fields_match(passenger: Dict[str, Any], flight_id: Optional[str] = None,

@@ -17,24 +17,25 @@ def test_update_customer_with_mismatched_name(api_client: httpx.Client) -> None:
     Test updating customer information with names that don't match the passport.
     The Passport API should return a mismatch error.
     """
-    # Use test flight from schema.sql
-    flight_id = "LHR001"
+    # Use test flight from schema.sql (Test Scenario 6)
+    flight_id = "AA006"
     
     # Step 1: Create a booking first (so we have something to update)
-    # Using static mapping from passport_match.json (BC1500)
-    initial_passport_id = "BC1500"
-    initial_first_name = "Shauna"
-    initial_last_name = "Davila"
+    # Using static mapping from update_customer_invalid_initial.json (Test Scenario 6)
+    initial_passport_id = "PP006"
+    initial_first_name = "Emily"
+    initial_last_name = "Davis"
     
     created_booking = create_booking(api_client, flight_id, initial_passport_id,
         initial_first_name, initial_last_name)
     customer_id = created_booking["customer_id"]
     
     # Step 2: Attempt to update with MISMATCHED names
-    # Using static mapping from passport_invalid_customer_flight.json (DOE12345)
-    updated_passport_id = "DOE12345"  # Different passport
-    updated_first_name = "John"        # Different from passport's "Jane"
-    updated_last_name = "Doe"          # Different from passport's "Smith"
+    # Using static mapping from update_customer_invalid_updated.json
+    # Wiremock returns: Jane, Smith (but test sends John, Doe - intentional mismatch)
+    updated_passport_id = "PP006INV"
+    updated_first_name = "John"
+    updated_last_name = "Doe"
     
     update_data = {
         "passport_id": updated_passport_id,

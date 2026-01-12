@@ -6,7 +6,8 @@ import httpx
 from tests.conftest import (
     create_booking,
     get_passengers,
-    find_passenger_by_customer_id
+    find_passenger_by_customer_id,
+    assert_status_code
 )
 
 
@@ -15,14 +16,14 @@ def test_delete_valid_booking(api_client: httpx.Client) -> None:
     Test deleting a valid booking.
     The booking should be successfully removed from the system.
     """
-    # Use test flight from schema.sql
-    flight_id = "LHR001"
+    # Use test flight from schema.sql (Test Scenario 7)
+    flight_id = "AA007"
     
     # Step 1: Create a booking first (so we have something to delete)
-    # Using static mapping from passport_match.json (BC1500)
-    passport_id = "BC1500"
-    first_name = "Shauna"
-    last_name = "Davila"
+    # Using static mapping from delete_booking.json (Test Scenario 7)
+    passport_id = "PP007"
+    first_name = "David"
+    last_name = "Wilson"
     
     created_booking = create_booking(api_client, flight_id, passport_id, first_name, last_name)
     customer_id = created_booking["customer_id"]
@@ -38,8 +39,7 @@ def test_delete_valid_booking(api_client: httpx.Client) -> None:
     )
     
     # Assertions - delete should succeed
-    assert delete_response.status_code == 200, \
-        f"Expected 200, got {delete_response.status_code}: {delete_response.text}"
+    assert_status_code(delete_response, 200)
     
     # Step 3: Verify the booking was deleted by trying to retrieve it
     passengers_after = get_passengers(api_client, flight_id)
@@ -57,5 +57,4 @@ def test_delete_valid_booking(api_client: httpx.Client) -> None:
     delete_again_response = api_client.delete(
         f"/flights/{flight_id}/passengers/{customer_id}"
     )
-    assert delete_again_response.status_code == 404, \
-        f"Deleting non-existent booking should return 404, got {delete_again_response.status_code}"
+    assert_status_code(delete_again_response, 404)

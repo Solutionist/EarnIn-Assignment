@@ -4,8 +4,12 @@ Expected Result: Booking details are retrieved, departure time is converted to U
 and arrival time is converted to BKK timezone.
 """
 import httpx
-from datetime import datetime
-from tests.conftest import find_flight_by_id
+from tests.conftest import (
+    find_flight_by_id,
+    parse_datetime_string,
+    assert_timezone_offset,
+    assert_status_code
+)
 
 
 def test_retrieve_flight_with_different_timezones(api_client: httpx.Client) -> None:
@@ -14,15 +18,15 @@ def test_retrieve_flight_with_different_timezones(api_client: httpx.Client) -> N
     Departure time should be in UK timezone (Europe/London/GMT),
     arrival time should be in BKK timezone (Asia/Bangkok).
     """
-    # Use LHR002 which has:
+    # Use AA003 which has (Test Scenario 3):
     # - Departure: Europe/London (GMT/UTC+0)
     # - Arrival: Asia/Bangkok (UTC+7)
-    flight_id = "LHR002"
+    flight_id = "AA003"
     
     # Retrieve flight details (no booking creation needed - GET /flights doesn't require bookings)
     # The API converts times to the appropriate timezones automatically
     response = api_client.get("/flights")
-    assert response.status_code == 200, f"Expected 200, got {response.status_code}: {response.text}"
+    assert_status_code(response, 200)
     
     flights_data = response.json()
     assert "flights" in flights_data
@@ -41,20 +45,12 @@ def test_retrieve_flight_with_different_timezones(api_client: httpx.Client) -> N
     arrival_time_str = flight["arrival_time"]
     
     # Convert to datetime objects
-    if departure_time_str.endswith('Z'):
-        departure_time = datetime.fromisoformat(departure_time_str.replace('Z', '+00:00'))
-    else:
-        departure_time = datetime.fromisoformat(departure_time_str)
-    
-    # Arrival should be in +07:00 format (BKK timezone)
-    arrival_time = datetime.fromisoformat(arrival_time_str)
+    departure_time = parse_datetime_string(departure_time_str)
+    arrival_time = parse_datetime_string(arrival_time_str)
     
     # Verify departure time is in UK timezone (GMT/UTC+0)
     # The API converts to Europe/London timezone
-    assert departure_time.tzinfo is not None, "Departure time should have timezone info"
-    departure_offset = departure_time.utcoffset()
-    assert departure_offset is not None and departure_offset.total_seconds() == 0, \
-        f"Departure time should be in GMT/UTC+0 (Europe/London in winter), got offset {departure_offset}"
+    assert_timezone_offset(departure_time, 0, "Departure")
     
     # Verify the departure time value
     # Original: 2024-12-01T10:00:00Z (UTC)
@@ -63,11 +59,7 @@ def test_retrieve_flight_with_different_timezones(api_client: httpx.Client) -> N
     assert departure_time.day == 1, f"Departure day should be 1, got {departure_time.day}"
     
     # Verify arrival time is in BKK timezone (Asia/Bangkok, UTC+7)
-    assert arrival_time.tzinfo is not None, "Arrival time should have timezone info"
-    # Check that it's in Asia/Bangkok timezone (UTC+7)
-    arrival_offset = arrival_time.utcoffset()
-    assert arrival_offset.total_seconds() == 7 * 3600, \
-        f"Arrival time should be in Asia/Bangkok timezone (UTC+7), got offset {arrival_offset}"
+    assert_timezone_offset(arrival_time, 7, "Arrival")
     
     # Verify the arrival time value
     # Original: 2024-12-01T18:00:00Z (UTC)

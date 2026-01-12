@@ -17,14 +17,14 @@ def test_create_booking_with_valid_customer(api_client: httpx.Client) -> None:
     Test creating a booking with valid customer details.
     The Passport API should be called and return matching names.
     """
-    # Use test flight from schema.sql
-    flight_id = "LHR001"
+    # Use test flight from schema.sql (Test Scenario 1)
+    flight_id = "AA001"
     
-    # Using static mapping from passport_match.json
-    # This mapping returns: passport_id="BC1500", first_name="Shauna", last_name="Davila"
-    passport_id = "BC1500"
-    first_name = "Shauna"
-    last_name = "Davila"
+    # Using static mapping from create_booking_valid.json (Test Scenario 1)
+    # This mapping returns: passport_id="PP001", first_name="Sarah", last_name="Johnson"
+    passport_id = "PP001"
+    first_name = "Sarah"
+    last_name = "Johnson"
     
     # Create booking
     response_data = create_booking(api_client, flight_id, passport_id, first_name, last_name)

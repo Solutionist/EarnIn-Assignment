@@ -1,11 +1,11 @@
 {
-    "priority": 2,
+    "priority": 1,
     "request": {
-        "method": "POST",
-        "url": "/flights/{flight_id}/passengers",
+        "method": "GET",
+        "url": "/passport",
         "bodyPatterns": [
             {
-                "equalToJson": "{ \"passport_id\": \"BC1500\" }",
+                "equalToJson": "{ \"passport_id\": \"PP006\" }",
                 "ignoreArrayOrder": true,
                 "ignoreExtraElement": true
             }
@@ -17,9 +17,9 @@
             "Content-Type": "application/json"
         },
         "jsonBody": {
-            "passport_id": "BC1500",
-            "first_name": "Shauna",
-            "last_name": "Davila"
+            "passport_id": "PP006",
+            "first_name": "Emily",
+            "last_name": "Davis"
         },
         "delayDistribution": {
             "type": "lognormal",

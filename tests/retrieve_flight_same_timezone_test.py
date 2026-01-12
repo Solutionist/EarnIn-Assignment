@@ -4,8 +4,12 @@ Expected Result: Booking details are retrieved, and both departure time and arri
 to the Thailand (Bangkok, ICT) timezone.
 """
 import httpx
-from datetime import datetime
-from tests.conftest import find_flight_by_id
+from tests.conftest import (
+    find_flight_by_id,
+    parse_datetime_string,
+    assert_timezone_offset,
+    assert_status_code
+)
 
 
 def test_retrieve_flight_with_same_timezone(api_client: httpx.Client) -> None:
@@ -13,14 +17,14 @@ def test_retrieve_flight_with_same_timezone(api_client: httpx.Client) -> None:
     Test retrieving flight details with same timezone for departure and arrival.
     Both departure and arrival times should be in Thailand (Bangkok, ICT) timezone.
     """
-    # Use BKK001 which has:
+    # Use AA004 which has (Test Scenario 4):
     # - Departure: Asia/Bangkok (UTC+7)
     # - Arrival: Asia/Bangkok (UTC+7)
-    flight_id = "BKK001"
+    flight_id = "AA004"
     
     # Retrieve flight details (no booking creation needed - GET /flights doesn't require bookings)
     response = api_client.get("/flights")
-    assert response.status_code == 200, f"Expected 200, got {response.status_code}: {response.text}"
+    assert_status_code(response, 200)
     
     flights_data = response.json()
     assert "flights" in flights_data
@@ -39,23 +43,12 @@ def test_retrieve_flight_with_same_timezone(api_client: httpx.Client) -> None:
     arrival_time_str = flight["arrival_time"]
     
     # Convert to datetime objects
-    departure_time = datetime.fromisoformat(departure_time_str)
-    arrival_time = datetime.fromisoformat(arrival_time_str)
+    departure_time = parse_datetime_string(departure_time_str)
+    arrival_time = parse_datetime_string(arrival_time_str)
     
     # Verify both departure and arrival times are in Bangkok timezone (Asia/Bangkok, UTC+7)
-    bkk_timezone_offset = 7 * 3600
-    
-    # Verify departure time is in Bangkok timezone
-    assert departure_time.tzinfo is not None, "Departure time should have timezone info"
-    departure_offset = departure_time.utcoffset()
-    assert departure_offset is not None and departure_offset.total_seconds() == bkk_timezone_offset, \
-        f"Departure time should be in Asia/Bangkok timezone (UTC+7), got offset {departure_offset}"
-    
-    # Verify arrival time is in Bangkok timezone
-    assert arrival_time.tzinfo is not None, "Arrival time should have timezone info"
-    arrival_offset = arrival_time.utcoffset()
-    assert arrival_offset.total_seconds() == bkk_timezone_offset, \
-        f"Arrival time should be in Asia/Bangkok timezone (UTC+7), got offset {arrival_offset}"
+    assert_timezone_offset(departure_time, 7, "Departure")
+    assert_timezone_offset(arrival_time, 7, "Arrival")
     
     # Verify both times are in the same timezone
     assert departure_time.tzinfo == arrival_time.tzinfo, \
