@@ -1,0 +1,25 @@
+{
+    "priority": 1,
+    "request": {
+        "method": "GET",
+        "url": "/passport",
+        "bodyPatterns": [
+            {
+                "equalToJson": "{ \"passport_id\": \"PP006INV\" }",
+                "ignoreArrayOrder": true,
+                "ignoreExtraElement": true
+            }
+        ]
+    },
+    "response": {
+        "status": 200,
+        "headers": {
+            "Content-Type": "application/json"
+        },
+        "jsonBody": {
+            "passport_id": "PP006INV",
+            "first_name": "Jane",
+            "last_name": "Smith"
+        }
+    }
+}

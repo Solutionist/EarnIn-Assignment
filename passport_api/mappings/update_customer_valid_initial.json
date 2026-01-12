@@ -5,7 +5,7 @@
         "url": "/passport",
         "bodyPatterns": [
             {
-                "equalToJson": "{ \"passport_id\": \"UPDATE001\" }",
+                "equalToJson": "{ \"passport_id\": \"PP005\" }",
                 "ignoreArrayOrder": true,
                 "ignoreExtraElement": true
             }
@@ -17,9 +17,14 @@
             "Content-Type": "application/json"
         },
         "jsonBody": {
-            "passport_id": "UPDATE001",
-            "first_name": "Alice",
-            "last_name": "Johnson"
+            "passport_id": "PP005",
+            "first_name": "Michael",
+            "last_name": "Brown"
+        },
+        "delayDistribution": {
+            "type": "lognormal",
+            "median": 80,
+            "sigma": 0.2
         }
     }
 }

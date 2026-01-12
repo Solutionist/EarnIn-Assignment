@@ -27,7 +27,14 @@ CREATE TABLE IF NOT EXISTS passengers (
     PRIMARY KEY (flight_id, customer_id)
 );
 
-INSERT INTO flights VALUES('AAA01', '2024-12-01T00:00:00Z', '2024-12-01T02:00:00Z', 'DMK', 'HYD', 'Asia/Bangkok', 'Asia/Bangkok');
-INSERT INTO flights VALUES('LHR001', '2024-12-01T10:00:00Z', '2024-12-01T14:00:00Z', 'LHR', 'BKK', 'Europe/London', 'Asia/Bangkok');
-INSERT INTO flights VALUES('LHR002', '2024-12-01T10:00:00Z', '2024-12-01T18:00:00Z', 'LHR', 'BKK', 'Europe/London', 'Asia/Bangkok');
-INSERT INTO flights VALUES('BKK001', '2024-12-01T08:00:00Z', '2024-12-01T10:00:00Z', 'DMK', 'BKK', 'Asia/Bangkok', 'Asia/Bangkok');
+-- Test flights with IDs matching test scenario numbers
+-- Tests 1, 2, 5, 6, 7: Booking operations (LHR -> BKK, different timezones)
+INSERT INTO flights VALUES('AA001', '2024-12-01T10:00:00Z', '2024-12-01T14:00:00Z', 'LHR', 'BKK', 'Europe/London', 'Asia/Bangkok');
+INSERT INTO flights VALUES('AA002', '2024-12-01T10:00:00Z', '2024-12-01T14:00:00Z', 'LHR', 'BKK', 'Europe/London', 'Asia/Bangkok');
+INSERT INTO flights VALUES('AA005', '2024-12-01T10:00:00Z', '2024-12-01T14:00:00Z', 'LHR', 'BKK', 'Europe/London', 'Asia/Bangkok');
+INSERT INTO flights VALUES('AA006', '2024-12-01T10:00:00Z', '2024-12-01T14:00:00Z', 'LHR', 'BKK', 'Europe/London', 'Asia/Bangkok');
+INSERT INTO flights VALUES('AA007', '2024-12-01T10:00:00Z', '2024-12-01T14:00:00Z', 'LHR', 'BKK', 'Europe/London', 'Asia/Bangkok');
+-- Test 3: Different timezones (LHR -> BKK, different timezones)
+INSERT INTO flights VALUES('AA003', '2024-12-01T10:00:00Z', '2024-12-01T18:00:00Z', 'LHR', 'BKK', 'Europe/London', 'Asia/Bangkok');
+-- Test 4: Same timezone (DMK -> BKK, both Asia/Bangkok)
+INSERT INTO flights VALUES('AA004', '2024-12-01T08:00:00Z', '2024-12-01T10:00:00Z', 'DMK', 'BKK', 'Asia/Bangkok', 'Asia/Bangkok');

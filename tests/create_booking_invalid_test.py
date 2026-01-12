@@ -15,11 +15,12 @@ def test_create_booking_with_invalid_customer(api_client: httpx.Client) -> None:
     Test creating a booking with invalid customer details.
     The Passport API should be called and return a 'Firstname or Lastname is mismatch.' error.
     """
-    # Use test flight from schema.sql
-    flight_id = "LHR001"
+    # Use test flight from schema.sql (Test Scenario 2)
+    flight_id = "AA002"
     
-    # Using static mapping from passport_invalid_customer_flight.json
-    passport_id = "DOE12345"
+    # Using static mapping from create_booking_invalid.json (Test Scenario 2)
+    # Wiremock returns: Jane, Smith (but test sends John, Doe - intentional mismatch)
+    passport_id = "PP002"
     first_name = "John"
     last_name = "Doe" 
     
