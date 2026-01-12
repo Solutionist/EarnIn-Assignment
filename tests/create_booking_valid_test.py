@@ -39,4 +39,10 @@ def test_create_booking_with_valid_customer(api_client: httpx.Client) -> None:
     # Find our booking
     our_booking = find_passenger_by_passport_id(passengers, passport_id)
     assert our_booking is not None, "Created booking should be in the list"
-    assert_passenger_fields_match(our_booking, first_name=first_name, last_name=last_name)
+    assert_passenger_fields_match(
+        our_booking, flight_id=flight_id,
+        customer_id=response_data["customer_id"],
+        passport_id=passport_id,
+        first_name=first_name,
+        last_name=last_name
+    )
