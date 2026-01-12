@@ -61,6 +61,8 @@ def test_update_customer_with_mismatched_name(api_client: httpx.Client) -> None:
     # Verify the booking still has the original values (not updated)
     assert_passenger_fields_match(
         original_passenger,
+        flight_id=flight_id,
+        customer_id=customer_id,
         passport_id=initial_passport_id,
         first_name=initial_first_name,
         last_name=initial_last_name

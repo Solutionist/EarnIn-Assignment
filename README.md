@@ -136,7 +136,7 @@ Each test case should use its own mock data and services (e.g., Wiremock for Pas
 - **Exit Code**: The test command will exit with code 0 if all tests pass, or non-zero if any test fails
 
 #### GitHub Actions Test Results
-When tests run in GitHub Actions (on pull requests or pushes to main branch):
+When tests run in GitHub Actions (on pull requests):
 - **Check Runs**: Test results are published as GitHub Check Runs, visible in the "Checks" tab of the PR
 - **PR Comments**: Test results are automatically posted as comments on pull requests, showing:
   - Total number of tests run
